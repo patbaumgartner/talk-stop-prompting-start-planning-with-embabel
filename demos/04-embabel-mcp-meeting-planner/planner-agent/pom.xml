@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.patbaumgartner</groupId>
+    <artifactId>04-embabel-mcp-meeting-planner</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>planner-agent</artifactId>
+
+  <name>planner-agent</name>
+  <description>Embabel Agent — consumes location MCP tools to plan meetings</description>
+
+  <properties>
+    <embabel-agent.version>0.4.0-SNAPSHOT</embabel-agent.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.embabel.agent</groupId>
+        <artifactId>embabel-agent-dependencies</artifactId>
+        <version>${embabel-agent.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-starter</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-starter-openai</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>embabel-snapshots</id>
+      <url>https://repo.embabel.com/artifactory/libs-snapshot</url>
+    </repository>
+  </repositories>
+</project>

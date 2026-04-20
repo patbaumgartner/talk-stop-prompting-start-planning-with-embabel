@@ -1,0 +1,78 @@
+###
+### Embabel MCP Meeting Planner – REST examples
+### Project: 04-embabel-mcp-meeting-planner (planner-agent module)
+### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
+###
+### Prerequisites:
+###   1. Export OPENAI_API_KEY
+###   2. Build location-mcp:
+###      cd demos/04-embabel-mcp-meeting-planner/location-mcp && mvn package -DskipTests
+###   3. Start planner-agent:
+###      cd demos/04-embabel-mcp-meeting-planner/planner-agent && mvn spring-boot:run
+###      (The agent starts the MCP server as a subprocess via stdio)
+###
+### Demo walkthrough order:
+###   1. Flow A — Basel team meeting (find → check → book)
+###   2. Flow B — Zürich client meeting with video (find → check → book)
+###   3. Flow C — Large meeting in Bern (may need replanning if no room fits)
+###
+
+@baseUrl = http://localhost:8080/api/meetings
+@meetingEndpoint = {{baseUrl}}/plan
+
+### ─── Flow A: Basel Team Meeting ────────────────────────────────────────
+### Small team sync in Basel. 6 people, no video needed.
+### Expected: Finds Basel HQ → selects an available room → books it
+###
+### Agent plan: RoomRequest → findLocation (MCP: all-locations) → Location
+###           → findRoomAtLocation (MCP: check-room-availability) → SuggestedRoom
+###           → bookRoom (MCP: book-room) → BookingResult
+###
+POST {{meetingEndpoint}}
+Content-Type: application/json
+
+{
+  "meetingDescription": "Weekly team sync to review sprint progress",
+  "numberOfPeople": 6,
+  "preferredCity": "Basel",
+  "date": "2026-04-22",
+  "time": "10:00",
+  "durationMinutes": 60,
+  "needsVideoConference": false
+}
+
+### ─── Flow B: Zürich Client Meeting ─────────────────────────────────────
+### Client presentation in Zürich. 4 people, video conference required.
+### Expected: Finds Zürich Office → selects an available video-capable room → books it
+###
+POST {{meetingEndpoint}}
+Content-Type: application/json
+
+{
+  "meetingDescription": "Quarterly business review with key client, needs presentation setup",
+  "numberOfPeople": 4,
+  "preferredCity": "Zürich",
+  "date": "2026-04-23",
+  "time": "14:00",
+  "durationMinutes": 90,
+  "needsVideoConference": true
+}
+
+### ─── Flow C: Large Bern Workshop ───────────────────────────────────────
+### Workshop in Bern for 15 people. Bern hub only has 1 room (cap 10).
+### Expected: May find Bern Hub but room too small → agent should handle gracefully
+###           or select alternative location
+###
+POST {{meetingEndpoint}}
+Content-Type: application/json
+
+{
+  "meetingDescription": "Cross-team architecture workshop, needs whiteboard and breakout space",
+  "numberOfPeople": 15,
+  "preferredCity": "Bern",
+  "date": "2026-04-24",
+  "time": "09:00",
+  "durationMinutes": 180,
+  "needsVideoConference": true
+}

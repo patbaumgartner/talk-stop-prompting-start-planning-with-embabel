@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.13</version>
+    <relativePath></relativePath>
+    <!-- Look up parent from repository -->
+  </parent>
+
+  <groupId>com.patbaumgartner</groupId>
+  <artifactId>02-embabel-ticket-triage</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <name>02-embabel-ticket-triage</name>
+  <description>Ticket Triage Agent (REST) with Embabel + OpenAI</description>
+
+  <properties>
+    <embabel-agent.version>0.4.0-SNAPSHOT</embabel-agent.version>
+    <java.version>21</java.version>
+  </properties>
+
+  <!-- Embabel common BOM -->
+  <dependencyManagement>
+    <dependencies>
+      <!-- Embabel Agent BOM -->
+      <dependency>
+        <groupId>com.embabel.agent</groupId>
+        <artifactId>embabel-agent-dependencies</artifactId>
+        <version>${embabel-agent.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- Optional: request validation -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Embabel basic agent platform starter -->
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-starter</artifactId>
+    </dependency>
+
+    <!-- Embabel OpenAI starter -->
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-starter-openai</artifactId>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.embabel.agent</groupId>
+      <artifactId>embabel-agent-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>embabel-snapshots</id>
+      <url>https://repo.embabel.com/artifactory/libs-snapshot</url>
+    </repository>
+  </repositories>
+</project>

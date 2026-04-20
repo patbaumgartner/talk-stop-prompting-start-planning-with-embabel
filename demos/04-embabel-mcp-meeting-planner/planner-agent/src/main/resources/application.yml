@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: planner-agent
+  ai:
+    mcp:
+      client:
+        enabled: true
+        type: SYNC
+        stdio:
+          connections:
+            location:
+              command: java
+              args:
+                - -Dspring.ai.mcp.server.stdio=true
+                - -jar
+                - "${LOCATION_MCP_JAR:${user.dir}/../location-mcp/target/location-mcp-1.0.0-SNAPSHOT.jar}"
+
+embabel:
+  models:
+    default-llm: gpt-5-mini
+
+logging:
+  level:
+    com.embabel: INFO
+    com.patbaumgartner.embabel: DEBUG
