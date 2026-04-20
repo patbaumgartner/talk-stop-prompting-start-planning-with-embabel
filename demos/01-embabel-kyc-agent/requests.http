@@ -1,0 +1,91 @@
+###
+### Embabel KYC Verification Agent – REST examples
+### Project: 01-embabel-kyc-agent
+### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
+###
+### Prerequisites:
+###   1. Export OPENAI_API_KEY
+###   2. Start the app: mvn spring-boot:run
+###
+### Demo walkthrough order:
+###   1. Flow A — Clean customer (LOW risk → APPROVE)
+###   2. Flow B — PEP match (HIGH risk → ENHANCED_DUE_DILIGENCE)
+###   3. Flow C — Sanctions match (CRITICAL → REJECT)
+###   4. Flow D — Adverse media only (MEDIUM → ENHANCED_DUE_DILIGENCE)
+###
+
+@baseUrl = http://localhost:8080/api/kyc
+@kycEndpoint = {{baseUrl}}/verify
+
+### ─── Flow A: Clean Customer ────────────────────────────────────────────
+### A normal customer with no risk indicators.
+### Expected: riskLevel=LOW, recommendation=APPROVE
+###
+### Plan: KycRequest → screenCustomer → KycScreening → assessRisk → KycAssessment
+###
+POST {{kycEndpoint}}
+Content-Type: application/json
+
+{
+  "customerId": "CUST-001",
+  "fullName": "Maria Müller",
+  "dateOfBirth": "1985-03-15",
+  "nationality": "Swiss",
+  "occupation": "Software Engineer",
+  "sourceOfFunds": "Employment salary"
+}
+
+### ─── Flow B: PEP Match ─────────────────────────────────────────────────
+### A customer whose name and role match known Politically Exposed Persons.
+### Expected: riskLevel=HIGH, recommendation=ENHANCED_DUE_DILIGENCE
+###
+### Plan: KycRequest → screenCustomer (PEP=true) → KycScreening → assessRisk → KycAssessment
+###
+POST {{kycEndpoint}}
+Content-Type: application/json
+
+{
+  "customerId": "CUST-002",
+  "fullName": "Viktor Orbán",
+  "dateOfBirth": "1963-05-31",
+  "nationality": "Hungarian",
+  "occupation": "Government Official",
+  "sourceOfFunds": "Government salary and investments"
+}
+
+### ─── Flow C: Sanctions Match ───────────────────────────────────────────
+### A customer from a sanctioned jurisdiction with suspicious indicators.
+### Expected: riskLevel=CRITICAL, recommendation=REJECT
+###
+### Plan: KycRequest → screenCustomer (Sanctions=true) → KycScreening → assessRisk → KycAssessment
+###
+POST {{kycEndpoint}}
+Content-Type: application/json
+
+{
+  "customerId": "CUST-003",
+  "fullName": "Roman Abramovich",
+  "dateOfBirth": "1966-10-24",
+  "nationality": "Russian",
+  "occupation": "Sanctioned businessman",
+  "sourceOfFunds": "Holdings and investments under sanctions scrutiny"
+}
+
+### ─── Flow D: Adverse Media Only ────────────────────────────────────────
+### A customer with media coverage of legal issues but no PEP/sanctions flags.
+### Expected: riskLevel=MEDIUM, recommendation=ENHANCED_DUE_DILIGENCE
+###
+### Plan: KycRequest → screenCustomer (AdverseMedia=true) → KycScreening → assessRisk → KycAssessment
+###
+POST {{kycEndpoint}}
+Content-Type: application/json
+
+{
+  "customerId": "CUST-004",
+  "fullName": "Elizabeth Holmes",
+  "dateOfBirth": "1984-02-03",
+  "nationality": "American",
+  "occupation": "Entrepreneur",
+  "sourceOfFunds": "Venture capital and personal investments"
+}

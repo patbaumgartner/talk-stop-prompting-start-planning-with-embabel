@@ -1,0 +1,67 @@
+###
+### Embabel PII Guardrails Demo – REST examples
+### Project: 03-embabel-pii-guardrails
+### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
+###
+### Prerequisites:
+###   1. Export OPENAI_API_KEY
+###   2. Start Presidio: docker compose up -d
+###   3. Start the app: mvn spring-boot:run
+###
+### Demo walkthrough order:
+###   1. Flow A — Clean text (no PII, passes guard rail)
+###   2. Flow B — Text with PII (BLOCKED by guard rail)
+###   3. Flow C — Same PII text on /unsafe endpoint (goes through — for comparison)
+###   4. Flow D — Mixed business content with embedded PII (BLOCKED)
+###
+
+@baseUrl = http://localhost:8080/api/summarize
+@safeEndpoint = {{baseUrl}}/safe
+@unsafeEndpoint = {{baseUrl}}/unsafe
+
+### ─── Flow A: Clean Text (No PII) ──────────────────────────────────────
+### Text without personal data — passes through the guard rail.
+### Expected: Summary returned normally, piiDetected=false
+###
+POST {{safeEndpoint}}
+Content-Type: application/json
+
+{
+  "text": "The quarterly earnings report shows a 15% increase in revenue compared to the previous quarter. Cloud services division grew by 23%, while the hardware segment remained flat. The board approved a share buyback program of $2 billion over the next 12 months."
+}
+
+### ─── Flow B: Text with PII (BLOCKED) ──────────────────────────────────
+### Text contains personal data (name, email, phone, credit card).
+### Expected: Request BLOCKED — guard rail returns error with detected PII types.
+### The LLM never sees the text.
+###
+POST {{safeEndpoint}}
+Content-Type: application/json
+
+{
+  "text": "Customer John Smith (john.smith@example.com, +41 79 123 4567) reported an issue with his credit card ending in 4242-4242-4242-4242. His account manager Sarah Johnson confirmed the IBAN CH93 0076 2011 6238 5295 7 needs to be updated."
+}
+
+### ─── Flow C: Same PII Text WITHOUT Guard Rails ────────────────────────
+### Same text as Flow B, but sent to /unsafe endpoint (no guard rail).
+### Expected: Summary returned — PII goes straight to the LLM.
+### This is the "before" to compare with Flow B's "after".
+###
+POST {{unsafeEndpoint}}
+Content-Type: application/json
+
+{
+  "text": "Customer John Smith (john.smith@example.com, +41 79 123 4567) reported an issue with his credit card ending in 4242-4242-4242-4242. His account manager Sarah Johnson confirmed the IBAN CH93 0076 2011 6238 5295 7 needs to be updated."
+}
+
+### ─── Flow D: Mixed Content ─────────────────────────────────────────────
+### Text with embedded PII in business context.
+### Expected: BLOCKED by guard rail (detects PERSON and EMAIL_ADDRESS).
+###
+POST {{safeEndpoint}}
+Content-Type: application/json
+
+{
+  "text": "Meeting notes from 2025-01-15: CEO Patrick Baumgartner (patrick@42talents.com) presented the Q4 results. Revenue target exceeded by 12%. Next board meeting scheduled for February."
+}

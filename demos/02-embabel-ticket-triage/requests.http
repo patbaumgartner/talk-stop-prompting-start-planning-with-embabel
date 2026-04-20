@@ -1,0 +1,144 @@
+###
+### Embabel Ticket Triage Agent – REST examples
+### Project: 02-embabel-ticket-triage
+### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
+###
+### Prerequisites:
+###   1. Export OPENAI_API_KEY
+###   2. Start the app: mvn spring-boot:run
+###
+### Demo walkthrough order:
+###   1. Flow A — Normal incident (deterministic, no LLM)
+###   2. Flow B — Uncertain case (replanning inserts deepClassify with LLM)
+###   3. Flow C — Security fast-path (deterministic CRITICAL)
+###   4. Flow D — Classic service request (LLM-assisted priority)
+###   5. Flow E — Outage + VIP deadline (deterministic CRITICAL)
+###
+
+@baseUrl = http://localhost:8080
+@triageEndpoint = {{baseUrl}}/api/v1/triage
+
+### ─── Flow A: Normal Incident ───────────────────────────────────────────────
+### Deterministic incident path with no replanning.
+### Expected:
+### - extractSignals -> SignalsOk(security=false, outage=true, vip=false)
+### - quickClassifyOk -> ConfidentCategory(INCIDENT, confidence=0.85)
+### - NO deepClassify
+### - assessPriority: outage => HIGH (deterministic)
+### - route: targetTeam=platform-ops
+###
+### Trace must NOT contain:
+###   - "deepClassify:"
+###
+
+POST {{triageEndpoint}}
+Content-Type: application/json
+
+{
+  "ticketId": "INC-101",
+  "text": "VPN has not been working since this morning. Multiple employees are reporting an outage.",
+  "channel": "email",
+  "simulate": "NORMAL"
+}
+
+###
+
+### ─── Flow B: Uncertain Case / Replanning ──────────────────────────────────
+### Low-confidence path that forces an LLM-backed replan.
+### Expected:
+### - extractSignals -> SignalsNeedsDeep(reason=simulate=LOW_CONFIDENCE)
+### - quickClassifyNeedsDeep -> UncertainCategory(bestGuess=SERVICE_REQUEST, confidence=0.45, ...)
+### - Replanning inserts deepClassify (LLM) to produce ConfidentCategory
+### - assessPriority uses LLM (non-outage path)
+### - route result depends on category (in sample response: platform-ops)
+###
+### Trace MUST contain (proof of replanning):
+###   - "quickClassify: UncertainCategory"
+###   - "deepClassify: invoking LLM to resolve uncertainty"
+###
+
+POST {{triageEndpoint}}
+Content-Type: application/json
+
+{
+  "ticketId": "REQ-202",
+  "text": "I cannot log in, but sometimes it works. Please investigate.",
+  "channel": "web",
+  "simulate": "LOW_CONFIDENCE"
+}
+
+###
+
+### ─── Flow C: Security Fast-Path ────────────────────────────────────────────
+### Deterministic escalation for a security incident.
+### Expected:
+### - extractSignals -> SignalsOk(security=true, outage=false, vip=false)
+### - Category: SECURITY
+### - assessPriority: SECURITY => CRITICAL (deterministic)
+### - Routing: security-incident
+###
+### Trace MUST contain:
+###   - "assessPriority: SECURITY => CRITICAL (deterministic)"
+###
+
+POST {{triageEndpoint}}
+Content-Type: application/json
+
+{
+  "ticketId": "SEC-777",
+  "text": "Possible data leak: an employee opened a phishing link and credentials may be compromised.",
+  "channel": "phone",
+  "simulate": "NORMAL"
+}
+
+###
+
+### ─── Flow D: Classic Service Request ───────────────────────────────────────
+### Typical request path with LLM-assisted priority assessment.
+### Expected:
+### - extractSignals -> SignalsOk(security=false, outage=false, vip=false)
+### - Category: SERVICE_REQUEST
+### - assessPriority: invoking LLM for non-outage
+### - Priority: LOW|MEDIUM|HIGH|CRITICAL (in sample response: LOW)
+### - Routing: service-desk-l1 (unless priority is HIGH/CRITICAL)
+###
+### Trace MUST contain:
+###   - "assessPriority: invoking LLM for non-outage"
+###
+
+POST {{triageEndpoint}}
+Content-Type: application/json
+
+{
+  "ticketId": "SR-314",
+  "text": "Please grant a new permission for repository X. I need read-only access.",
+  "channel": "email",
+  "simulate": "NORMAL"
+}
+
+###
+
+### ─── Flow E: Outage + VIP Deadline ────────────────────────────────────────
+### Deterministic CRITICAL escalation without LLM involvement.
+### Expected:
+### - extractSignals -> SignalsOk(security=false, outage=true, vip=true)
+### - Category: INCIDENT
+### - assessPriority: outage+vip => CRITICAL (deterministic)
+### - Routing: platform-ops
+###
+### Trace MUST contain:
+###   - "assessPriority: outage+vip => CRITICAL (deterministic)"
+###
+
+POST {{triageEndpoint}}
+Content-Type: application/json
+
+{
+  "ticketId": "INC-999",
+  "text": "System is not reachable. A VIP customer meeting is scheduled in 30 minutes and executives are waiting.",
+  "channel": "chat",
+  "simulate": "NORMAL"
+}
+
+###
