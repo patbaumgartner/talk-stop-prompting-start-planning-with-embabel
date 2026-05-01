@@ -51,14 +51,14 @@ class TriageControllerIntegrationTest {
 			mocked.when(() -> AgentInvocation.create(agentPlatform, TriageResponse.class)).thenReturn(invocation);
 
 			mockMvc
-					.perform(post("/api/v1/triage").contentType(MediaType.APPLICATION_JSON)
-							.content(objectMapper.writeValueAsString(
-									new ApiTriageRequest("T-1", "System outage", "email", "NORMAL"))))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.ticketId").value("T-1"))
-					.andExpect(jsonPath("$.category").value("INCIDENT"))
-					.andExpect(jsonPath("$.priority").value("HIGH"))
-					.andExpect(jsonPath("$.targetTeam").value("platform-ops"));
+				.perform(post("/api/v1/triage").contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper
+						.writeValueAsString(new ApiTriageRequest("T-1", "System outage", "email", "NORMAL"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.ticketId").value("T-1"))
+				.andExpect(jsonPath("$.category").value("INCIDENT"))
+				.andExpect(jsonPath("$.priority").value("HIGH"))
+				.andExpect(jsonPath("$.targetTeam").value("platform-ops"));
 
 			ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
 			verify(invocation).invoke(captor.capture(), any(Object[].class));

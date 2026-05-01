@@ -4,7 +4,16 @@ import com.embabel.agent.api.annotation.AchievesGoal;
 import com.embabel.agent.api.annotation.Action;
 import com.embabel.agent.api.annotation.Agent;
 import com.embabel.agent.api.common.OperationContext;
-import com.patbaumgartner.embabel.ticket.triage.TriageModels.*;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.ConfidentCategory;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.PriorityAssessment;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.RoutingDecision;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.Signals;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.SignalsNeedsDeep;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.SignalsOk;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.TraceLog;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.TriageRequest;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.TriageResponse;
+import com.patbaumgartner.embabel.ticket.triage.TriageModels.UncertainCategory;
 
 @Agent(description = "Business-oriented ticket triage agent (category, priority, routing) with replanning")
 public class TicketTriageAgent {
@@ -56,10 +65,12 @@ public class TicketTriageAgent {
 		if (s.mentionsSecurity()) {
 			category = "SECURITY";
 			rationale = "Security keywords detected.";
-		} else if (s.mentionsOutage()) {
+		}
+		else if (s.mentionsOutage()) {
 			category = "INCIDENT";
 			rationale = "Outage/reachability detected.";
-		} else {
+		}
+		else {
 			category = "SERVICE_REQUEST";
 			rationale = "No outage/security; defaulting to service request.";
 		}
@@ -180,15 +191,18 @@ public class TicketTriageAgent {
 		if ("SECURITY".equalsIgnoreCase(category.category())) {
 			team = "security-incident";
 			rationale = "Security always goes to Security Incident Response.";
-		} else if ("INCIDENT".equalsIgnoreCase(category.category())) {
+		}
+		else if ("INCIDENT".equalsIgnoreCase(category.category())) {
 			team = "platform-ops";
 			rationale = "Incidents go to Ops (SRE/Platform).";
-		} else {
+		}
+		else {
 			// Service requests:
 			if ("CRITICAL".equalsIgnoreCase(prio.priority()) || "HIGH".equalsIgnoreCase(prio.priority())) {
 				team = "service-desk-l2";
 				rationale = "High priority => L2.";
-			} else {
+			}
+			else {
 				team = "service-desk-l1";
 				rationale = "Normal => L1.";
 			}

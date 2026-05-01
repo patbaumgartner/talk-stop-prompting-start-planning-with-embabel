@@ -1,6 +1,12 @@
 package com.patbaumgartner.embabel.mcp.location;
 
-import com.patbaumgartner.embabel.mcp.location.LocationModels.*;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.BookRoomRequest;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.BookRoomResponse;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.Location;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.LocationResponse;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.Room;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.RoomAvailableRequest;
+import com.patbaumgartner.embabel.mcp.location.LocationModels.RoomAvailableResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
