@@ -2,6 +2,8 @@ package com.patbaumgartner.embabel.mcp.planner;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
+import com.embabel.agent.core.ProcessOptions;
+import com.embabel.agent.core.Verbosity;
 import com.patbaumgartner.embabel.mcp.planner.PlannerModels.ApiMeetingRequest;
 import com.patbaumgartner.embabel.mcp.planner.PlannerModels.BookingResult;
 import jakarta.validation.Valid;
@@ -22,7 +24,9 @@ public class MeetingController {
 
 	@PostMapping("/plan")
 	public BookingResult planMeeting(@Valid @RequestBody ApiMeetingRequest request) {
-		return AgentInvocation.create(agentPlatform, BookingResult.class).invoke(request.toDomain());
+		return AgentInvocation.create(agentPlatform, BookingResult.class)
+			.withProcessOptions(ProcessOptions.DEFAULT.withVerbosity(new Verbosity().showPlanning()))
+			.invoke(request.toDomain());
 	}
 
 }

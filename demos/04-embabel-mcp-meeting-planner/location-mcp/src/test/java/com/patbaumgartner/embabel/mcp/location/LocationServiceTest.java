@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LocationServiceTest {
@@ -52,6 +53,19 @@ class LocationServiceTest {
 		assertTrue(response.bookingId().startsWith("BK-"));
 		assertEquals("basel-hq", response.locationId());
 		assertEquals("bsl-1", response.roomId());
+	}
+
+	@Test
+	void bookRoomRejectsFabricatedRoomOrRoomAtWrongLocation() {
+		for (String roomId : new String[] { "invented-room", "bsl-1" }) {
+			var request = new BookRoomRequest("bern-hub", roomId, "2026-04-21", "10:00", 60, "demo-user");
+
+			var response = service.bookRoom(request);
+
+			assertFalse(response.confirmed());
+			assertNull(response.bookingId());
+			assertTrue(response.message().contains("booking rejected"));
+		}
 	}
 
 }

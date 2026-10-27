@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 /**
  * Guard rail that intercepts user input BEFORE it reaches the LLM.
  *
- * Calls Microsoft Presidio to detect PII entities (names, emails, phone numbers, etc.).
- * If PII is detected with high confidence, the request is BLOCKED (CRITICAL severity).
+ * Calls Presidio to detect PII entities (names, emails, phone numbers, etc.). If PII is
+ * detected with high confidence, the request is BLOCKED (CRITICAL severity).
  *
  * Key demo point: - Guard rails run BEFORE the LLM call — PII never leaves the system -
  * Uses an external service (Presidio) — not regex, not the LLM itself - Plugged into the

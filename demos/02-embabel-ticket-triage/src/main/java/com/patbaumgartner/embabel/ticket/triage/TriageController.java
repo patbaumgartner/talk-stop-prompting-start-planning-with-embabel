@@ -2,6 +2,8 @@ package com.patbaumgartner.embabel.ticket.triage;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
+import com.embabel.agent.core.ProcessOptions;
+import com.embabel.agent.core.Verbosity;
 import com.patbaumgartner.embabel.ticket.triage.TriageModels.ApiTriageRequest;
 import com.patbaumgartner.embabel.ticket.triage.TriageModels.TriageResponse;
 import jakarta.validation.Valid;
@@ -25,7 +27,8 @@ public class TriageController {
 	@PostMapping
 	public TriageResponse triage(@RequestBody @Valid ApiTriageRequest req) {
 		// AgentInvocation is a type-safe way to perform an invocation.
-		AgentInvocation<TriageResponse> inv = AgentInvocation.create(agentPlatform, TriageResponse.class);
+		AgentInvocation<TriageResponse> inv = AgentInvocation.create(agentPlatform, TriageResponse.class)
+			.withProcessOptions(ProcessOptions.DEFAULT.withVerbosity(new Verbosity().showPlanning()));
 		return inv.invoke(req.toDomain());
 	}
 

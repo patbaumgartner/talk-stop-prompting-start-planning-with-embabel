@@ -2,6 +2,8 @@ package com.patbaumgartner.embabel.kyc;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
+import com.embabel.agent.core.ProcessOptions;
+import com.embabel.agent.core.Verbosity;
 import com.patbaumgartner.embabel.kyc.KycModels.ApiKycRequest;
 import com.patbaumgartner.embabel.kyc.KycModels.KycAssessment;
 import jakarta.validation.Valid;
@@ -22,7 +24,9 @@ public class KycController {
 
 	@PostMapping("/verify")
 	public KycAssessment verify(@Valid @RequestBody ApiKycRequest request) {
-		return AgentInvocation.create(agentPlatform, KycAssessment.class).invoke(request.toDomain());
+		return AgentInvocation.create(agentPlatform, KycAssessment.class)
+			.withProcessOptions(ProcessOptions.DEFAULT.withVerbosity(new Verbosity().showPlanning()))
+			.invoke(request.toDomain());
 	}
 
 }

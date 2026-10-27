@@ -21,5 +21,11 @@ embabel:
 
 logging:
   level:
-    com.embabel: INFO
+    # Planning, replanning, actions and tool events use the separate Embabel logger
+    Embabel: INFO
+    com.embabel: DEBUG
     com.patbaumgartner.embabel: DEBUG
+    org.springframework.ai.mcp: INFO
+    io.modelcontextprotocol.client: INFO
+    # Forward the MCP subprocess's stderr logs without tracing JSON-RPC payloads
+    io.modelcontextprotocol.client.transport.StdioClientTransport: INFO

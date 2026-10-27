@@ -4,6 +4,7 @@ import com.embabel.agent.api.annotation.AchievesGoal;
 import com.embabel.agent.api.annotation.Action;
 import com.embabel.agent.api.annotation.Agent;
 import com.embabel.agent.api.common.OperationContext;
+import com.embabel.agent.core.ActionRetryPolicy;
 import com.patbaumgartner.embabel.guardrails.GuardrailModels.SummarizeRequest;
 import com.patbaumgartner.embabel.guardrails.GuardrailModels.Summary;
 import com.patbaumgartner.embabel.guardrails.GuardrailModels.UnsafeSummarizeRequest;
@@ -37,7 +38,10 @@ public class TextSummarizationAgent {
 	}
 
 	@AchievesGoal(description = "Produce a PII-safe summary of the input text.")
-	@Action(description = "Summarize the provided text, blocking PII via guard rail.")
+	// Policy rejections cannot succeed on retry; transient LLM retries remain inside
+	// PromptRunner.
+	@Action(description = "Summarize the provided text, blocking PII via guard rail.",
+			actionRetryPolicy = ActionRetryPolicy.FIRE_ONCE)
 	public Summary summarize(SummarizeRequest request, OperationContext context) {
 		log.info("Summarizing text with PII guard rail ({} chars)", request.text().length());
 

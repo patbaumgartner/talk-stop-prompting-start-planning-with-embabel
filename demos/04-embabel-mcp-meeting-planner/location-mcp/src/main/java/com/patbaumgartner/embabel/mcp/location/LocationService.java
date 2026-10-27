@@ -58,11 +58,14 @@ public class LocationService {
 			.orElse(null);
 
 		if (match == null) {
+			log.info("MCP Tool: no room at {} fits {} people", request.locationId(), request.numberOfPeople());
 			return new RoomAvailableResponse(request.locationId(), null, null, false,
 					"No room with sufficient capacity (%d people) at this location."
 						.formatted(request.numberOfPeople()));
 		}
 
+		log.info("MCP Tool: available room {} at {} (capacity={}, requested={})", match.roomId(), request.locationId(),
+				match.capacity(), request.numberOfPeople());
 		return new RoomAvailableResponse(request.locationId(), match.roomId(), match.name(), true,
 				"Room '%s' is available (capacity: %d).".formatted(match.name(), match.capacity()));
 	}
@@ -70,6 +73,15 @@ public class LocationService {
 	@Tool(name = "book-room", description = "Book a room at a specific location on a day and time.")
 	public BookRoomResponse bookRoom(BookRoomRequest request) {
 		log.info("MCP Tool: book-room {} at {} on {}", request.roomId(), request.locationId(), request.date());
+
+		boolean roomExists = ROOMS.getOrDefault(request.locationId(), List.of())
+			.stream()
+			.anyMatch(room -> room.roomId().equals(request.roomId()));
+		if (!roomExists) {
+			log.warn("MCP Tool: booking rejected for unknown room {} at {}", request.roomId(), request.locationId());
+			return new BookRoomResponse(null, request.locationId(), request.roomId(), request.date(), request.time(),
+					false, "Unknown room at this location; booking rejected.");
+		}
 
 		String bookingId = "BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 

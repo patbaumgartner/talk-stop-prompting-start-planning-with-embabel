@@ -9,8 +9,8 @@ import org.springframework.web.service.annotation.PostExchange;
 import java.util.List;
 
 /**
- * Declarative HTTP client for Microsoft Presidio Analyzer. Presidio runs as a sidecar
- * container (see docker-compose.yml).
+ * Declarative HTTP client for Presidio Analyzer. Presidio runs as a sidecar container
+ * (see docker-compose.yml).
  */
 @HttpExchange
 public interface PresidioAnalyzerClient {

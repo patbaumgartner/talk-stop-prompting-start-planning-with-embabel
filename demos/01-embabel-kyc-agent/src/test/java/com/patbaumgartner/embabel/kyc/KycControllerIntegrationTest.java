@@ -2,7 +2,6 @@ package com.patbaumgartner.embabel.kyc;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.patbaumgartner.embabel.kyc.KycModels.KycAssessment;
 import com.patbaumgartner.embabel.kyc.KycModels.KycRequest;
 import org.junit.jupiter.api.Test;
@@ -10,10 +9,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +31,7 @@ class KycControllerIntegrationTest {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private ObjectMapper objectMapper;
+	private JsonMapper jsonMapper;
 
 	@MockitoBean
 	private AgentPlatform agentPlatform;
@@ -41,6 +41,7 @@ class KycControllerIntegrationTest {
 		var assessment = new KycAssessment("Jane Doe", "LOW", "APPROVE", "No risk indicators found.");
 		@SuppressWarnings("rawtypes")
 		AgentInvocation invocation = mock(AgentInvocation.class);
+		when(invocation.withProcessOptions(any())).thenReturn(invocation);
 		when(invocation.invoke(any(), any(Object[].class))).thenReturn(assessment);
 
 		try (MockedStatic<AgentInvocation> mocked = Mockito.mockStatic(AgentInvocation.class)) {
@@ -48,7 +49,7 @@ class KycControllerIntegrationTest {
 
 			mockMvc
 				.perform(post("/api/kyc/verify").contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(new KycModels.ApiKycRequest("cust-1", "Jane Doe",
+					.content(jsonMapper.writeValueAsString(new KycModels.ApiKycRequest("cust-1", "Jane Doe",
 							"1990-01-01", "CH", "Engineer", "Salary"))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.fullName").value("Jane Doe"))

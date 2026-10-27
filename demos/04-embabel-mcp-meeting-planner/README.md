@@ -35,7 +35,10 @@
    - Zurich (4 people, video): location -> room -> booking
    - Bern (15 people): constrained capacity path
    Explanation: Two happy paths and one capacity-constrained path show real tool-driven behavior.
-   Expected: Basel and Zurich return normal booking results; Bern demonstrates constrained-capacity behavior.
+   Expected: Basel and Zurich return normal booking results; Bern's only room is
+   too small, so the room-finding action must use the tools to find Basel's
+   20-person Dreiländereck room. This is tool recovery within an action, not a
+   changed GOAP action plan.
 
 ## Architecture
 
@@ -66,6 +69,22 @@ mvn spring-boot:run
 
 Application starts on `http://localhost:8080`.
 
+## Logging
+
+The planner console shows Embabel planning, replanning reasons, action execution,
+tool calls, and goal completion through the `Embabel` logger at `INFO`, with
+framework diagnostics under `com.embabel` at `DEBUG`.
+MCP client/server lifecycle logs remain at `INFO` to avoid verbose JSON-RPC tracing.
+
+The location server logs tool invocations to stderr through `logback-spring.xml`.
+The planner's `StdioClientTransport` logger forwards these at `INFO` as
+`STDERR Message received` entries, so both sides are visible in one console
+without corrupting the JSON-RPC stream on stdout.
+
+Each REST invocation enables detailed planning with `Verbosity.showPlanning()`.
+Prompt/response verbosity remains unchanged. Use synthetic meeting data because
+tool and diagnostic logs can include request/response details.
+
 ## Requests
 
 - Use `requests.http` for the live walkthrough.
@@ -79,7 +98,14 @@ cd /path/to/presentation-stop-prompting-start-planning-with-embabel
 ./run-demo-acceptance.sh
 ```
 
-This validates location-mcp packaging, planner startup, and both canonical meeting requests.
+This validates location-mcp packaging, planner startup, and all three canonical
+meeting requests, including a real-capacity alternative for the Bern workshop.
+The runner checks framework plans, action execution, and goal achievement.
+The room-finding action rejects undersized suggestions; the MCP booking tool
+rejects nonexistent rooms instead of generating a success-shaped booking.
+Booking responses preserve display names and scheduling details from the
+selected `SuggestedRoom`; the booking tool returns IDs rather than those names,
+so the final LLM response must not be trusted to reconstruct them.
 
 ## Acceptance
 
@@ -91,8 +117,8 @@ From the repository root:
 
 ## Tech Stack
 
-- Embabel 0.4.x
-- Spring Boot 3.5.x
-- Spring AI (MCP Server)
+- Embabel 1.5.x
+- Spring Boot 4.1.x (Java 21+)
+- Spring AI 2.0.1 (MCP Server)
 - OpenAI gpt-5-mini
 - MCP (Model Context Protocol)

@@ -37,7 +37,15 @@
    - same text via `/unsafe` -> summarized with exposed PII
    - mixed business text with embedded PII -> blocked
    Explanation: These requests verify pre-LLM interception in the safe path.
-   Expected: Clean text succeeds, safe PII is rejected, and unsafe PII still returns a summary.
+   Expected: Clean text succeeds, safe PII returns HTTP 422 with
+   `code=GUARDRAIL_VIOLATION`, `guard=PIIGuardRail`, and detected entity types in
+   `detail`; unsafe PII still returns a summary.
+
+The guarded action uses `ActionRetryPolicy.FIRE_ONCE`: repeating the same
+PII-containing input cannot change the policy decision. Without this setting,
+Embabel's default action retries add 10, 50, 60, and 60 seconds of backoff before
+returning the failure. LLM-level transient retries remain enabled inside
+`PromptRunner`; the policy rejection itself happens before any model call.
 
 ## Architecture
 
@@ -65,6 +73,20 @@ mvn spring-boot:run
 
 Spring Boot starts `docker-compose.yml` automatically for local runs (via `spring-boot-docker-compose`).
 
+The Presidio health check uses Python's standard library because the analyzer image
+does not include `curl`. A 120-second startup grace period allows its NLP model to
+load; the container becomes healthy as soon as `/health` responds successfully.
+
+To apply Compose changes and verify the sidecar independently:
+
+```bash
+docker compose up -d --wait --wait-timeout 180
+docker compose ps
+curl --fail http://localhost:5002/health
+```
+
+If the sidecar remains unhealthy, inspect `docker compose logs --tail=100 presidio-analyzer`.
+
 Application starts on `http://localhost:8080`.
 
 ## Requests
@@ -81,9 +103,23 @@ From the repository root:
 ./run-demo-acceptance.sh
 ```
 
+The runner requires a structured HTTP 422 response and exactly one `PII Guard
+Rail: BLOCKED` event per rejected request. Generic HTTP 500 errors and repeated
+action attempts fail acceptance.
+
+Regression checks without Docker or an OpenAI key:
+
+```bash
+mvn -f demos/03-embabel-pii-guardrails/pom.xml -Dtest=GuardrailRejectionIntegrationTest,GuardrailControllerIntegrationTest test
+```
+
+The rejection test uses real HTTP, the real Embabel planner and guardrail
+execution, and a mocked Presidio analyzer. It requires a response within five
+seconds and exactly one analyzer invocation.
+
 ## Tech Stack
 
-- Embabel 0.4.x
-- Spring Boot 3.5.x
+- Embabel 1.5.x
+- Spring Boot 4.1.x (Java 21+)
 - OpenAI gpt-5-mini
-- Microsoft Presidio Analyzer
+- Presidio Analyzer

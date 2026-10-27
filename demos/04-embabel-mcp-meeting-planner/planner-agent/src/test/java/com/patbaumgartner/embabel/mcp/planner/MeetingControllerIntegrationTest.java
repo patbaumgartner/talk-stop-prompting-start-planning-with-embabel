@@ -2,7 +2,6 @@ package com.patbaumgartner.embabel.mcp.planner;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.patbaumgartner.embabel.mcp.planner.PlannerModels.BookingResult;
 import com.patbaumgartner.embabel.mcp.planner.PlannerModels.RoomRequest;
 import org.junit.jupiter.api.Test;
@@ -10,10 +9,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +31,7 @@ class MeetingControllerIntegrationTest {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private ObjectMapper objectMapper;
+	private JsonMapper jsonMapper;
 
 	@MockitoBean
 	private AgentPlatform agentPlatform;
@@ -42,6 +42,7 @@ class MeetingControllerIntegrationTest {
 				"Booked");
 		@SuppressWarnings("rawtypes")
 		AgentInvocation invocation = mock(AgentInvocation.class);
+		when(invocation.withProcessOptions(any())).thenReturn(invocation);
 		when(invocation.invoke(any(), any(Object[].class))).thenReturn(result);
 
 		try (MockedStatic<AgentInvocation> mocked = Mockito.mockStatic(AgentInvocation.class)) {
@@ -49,8 +50,8 @@ class MeetingControllerIntegrationTest {
 
 			mockMvc
 				.perform(post("/api/meetings/plan").contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(new PlannerModels.ApiMeetingRequest("Quarterly planning",
-							8, "Basel", "2026-04-21", "10:00", 60, true))))
+					.content(jsonMapper.writeValueAsString(new PlannerModels.ApiMeetingRequest("Quarterly planning", 8,
+							"Basel", "2026-04-21", "10:00", 60, true))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.bookingId").value("BK-1234"))
 				.andExpect(jsonPath("$.confirmed").value(true));

@@ -1,12 +1,13 @@
 services:
   presidio-analyzer:
-    image: mcr.microsoft.com/presidio-analyzer:latest
+    image: ghcr.io/data-privacy-stack/presidio-analyzer:latest
     ports:
       - "5002:3000"
     environment:
       - ANALYZER_LOG_LEVEL=INFO
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health', timeout=4).close()" ]
+      start_period: 120s
       interval: 10s
       timeout: 5s
       retries: 3

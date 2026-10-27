@@ -64,15 +64,22 @@ public class MeetingPlannerAgent {
 				- Number of people: %d
 
 				Use the check-room-availability tool.
+				If no room is available at this location, use all-locations and check-room-availability
+				to find a room at another location with sufficient capacity.
+				Only return a room reported as available by the tool. Never invent room IDs or capacity.
 				Return the suggested room details.
 				""".formatted(location.locationName(), location.locationId(), request.date(), request.time(),
 				request.durationMinutes(), request.numberOfPeople());
 
-		return context.ai()
+		var room = context.ai()
 			.withDefaultLlm()
 			.withToolGroups("location")
 			.creating(SuggestedRoom.class)
 			.fromPrompt(prompt);
+		if (room.capacity() < request.numberOfPeople() || room.roomId() == null || room.roomId().isBlank()) {
+			throw new IllegalStateException("No valid room with capacity for " + request.numberOfPeople() + " people");
+		}
+		return room;
 	}
 
 	/**
@@ -94,11 +101,13 @@ public class MeetingPlannerAgent {
 				Use the book-room tool to confirm the booking.
 				""".formatted(room.locationId(), room.roomId(), room.date(), room.time(), room.durationMinutes());
 
-		return context.ai()
+		var booking = context.ai()
 			.withDefaultLlm()
 			.withToolGroups("location")
 			.creating(BookingResult.class)
 			.fromPrompt(prompt);
+		return new BookingResult(booking.bookingId(), room.locationName(), room.roomName(), room.date(), room.time(),
+				room.durationMinutes(), booking.confirmed(), booking.message());
 	}
 
 }

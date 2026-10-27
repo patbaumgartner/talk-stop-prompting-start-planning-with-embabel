@@ -14,7 +14,7 @@
   <description>Embabel Agent — consumes location MCP tools to plan meetings</description>
 
   <properties>
-    <embabel-agent.version>0.4.0-SNAPSHOT</embabel-agent.version>
+    <embabel-agent.version>1.5.3</embabel-agent.version>
   </properties>
 
   <dependencyManagement>
@@ -31,7 +31,7 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
 
     <dependency>
@@ -56,6 +56,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>com.embabel.agent</groupId>
       <artifactId>embabel-agent-test</artifactId>
       <scope>test</scope>
@@ -70,17 +76,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>embabel-snapshots</id>
-      <url>https://repo.embabel.com/artifactory/libs-snapshot</url>
-    </repository>
-  </repositories>
 </project>

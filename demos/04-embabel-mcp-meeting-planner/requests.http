@@ -1,7 +1,7 @@
 ###
 ### Embabel MCP Meeting Planner – REST examples
 ### Project: 04-embabel-mcp-meeting-planner (planner-agent module)
-### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Embabel: 1.5.3 | Spring Boot 4.1.2 | Java 21
 ### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
 ###
 ### Prerequisites:
@@ -61,8 +61,9 @@ Content-Type: application/json
 
 ### ─── Flow C: Large Bern Workshop ───────────────────────────────────────
 ### Workshop in Bern for 15 people. Bern hub only has 1 room (cap 10).
-### Expected: May find Bern Hub but room too small → agent should handle gracefully
-###           or select alternative location
+### Expected: Bern room too small → use MCP tools to select Basel Headquarters,
+###           Dreiländereck (capacity 20), then book it.
+###           Tool recovery inside findRoomAtLocation is NOT GOAP replanning.
 ###
 POST {{meetingEndpoint}}
 Content-Type: application/json

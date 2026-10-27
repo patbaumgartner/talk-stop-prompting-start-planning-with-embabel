@@ -2,7 +2,6 @@ package com.patbaumgartner.embabel.ticket.triage;
 
 import com.embabel.agent.api.invocation.AgentInvocation;
 import com.embabel.agent.core.AgentPlatform;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.patbaumgartner.embabel.ticket.triage.TriageModels.ApiTriageRequest;
 import com.patbaumgartner.embabel.ticket.triage.TriageModels.TriageRequest;
 import com.patbaumgartner.embabel.ticket.triage.TriageModels.TriageResponse;
@@ -11,10 +10,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ class TriageControllerIntegrationTest {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private ObjectMapper objectMapper;
+	private JsonMapper jsonMapper;
 
 	@MockitoBean
 	private AgentPlatform agentPlatform;
@@ -45,6 +45,7 @@ class TriageControllerIntegrationTest {
 				List.of("trace-1", "trace-2"));
 		@SuppressWarnings("rawtypes")
 		AgentInvocation invocation = mock(AgentInvocation.class);
+		when(invocation.withProcessOptions(any())).thenReturn(invocation);
 		when(invocation.invoke(any(), any(Object[].class))).thenReturn(response);
 
 		try (MockedStatic<AgentInvocation> mocked = Mockito.mockStatic(AgentInvocation.class)) {
@@ -52,7 +53,7 @@ class TriageControllerIntegrationTest {
 
 			mockMvc
 				.perform(post("/api/v1/triage").contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper
+					.content(jsonMapper
 						.writeValueAsString(new ApiTriageRequest("T-1", "System outage", "email", "NORMAL"))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.ticketId").value("T-1"))

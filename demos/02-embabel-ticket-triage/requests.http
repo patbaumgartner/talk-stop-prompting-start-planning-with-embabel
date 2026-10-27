@@ -1,7 +1,7 @@
 ###
 ### Embabel Ticket Triage Agent – REST examples
 ### Project: 02-embabel-ticket-triage
-### Embabel: 0.4.0-SNAPSHOT | Spring Boot 3.5.13 | Java 21
+### Embabel: 1.5.3 | Spring Boot 4.1.2 | Java 21
 ### Mode: Spring Boot REST (programmatic invocation via AgentPlatform)
 ###
 ### Prerequisites:

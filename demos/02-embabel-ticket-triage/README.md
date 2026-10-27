@@ -74,8 +74,24 @@ From the repository root:
 ./run-demo-acceptance.sh
 ```
 
+The runner covers all five HTTP flows and prints the framework plan/action
+timeline alongside each response trace. For `LOW_CONFIDENCE`, compare the initial
+plan containing `quickClassifyOk` with the revised plan containing
+`quickClassifyNeedsDeep -> deepClassify`. That change follows the actual
+`SignalsNeedsDeep` result; it is not an explicit application-level replan request.
+
+For repeatable validation without an OpenAI key, from the repository root:
+
+```bash
+mvn -f demos/02-embabel-ticket-triage/pom.xml -Dtest=TriagePlanningIntegrationTest test
+```
+
+This starts a real HTTP server and real Embabel planner, mocking only LLM
+operations. It asserts the changed framework plans, executed action, and goal
+completion, not just application trace messages.
+
 ## Tech Stack
 
-- Embabel 0.4.x
-- Spring Boot 3.5.x
+- Embabel 1.5.x
+- Spring Boot 4.1.x (Java 21+)
 - OpenAI gpt-5-mini

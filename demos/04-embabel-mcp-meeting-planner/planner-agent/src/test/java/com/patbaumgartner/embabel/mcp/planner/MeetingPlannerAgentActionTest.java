@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -70,6 +71,26 @@ class MeetingPlannerAgentActionTest {
 		ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
 		verify(creating).fromPrompt(promptCaptor.capture());
 		assertTrue(promptCaptor.getValue().contains("check-room-availability"));
+		assertTrue(promptCaptor.getValue().contains("another location with sufficient capacity"));
+	}
+
+	@Test
+	void findRoomRejectsUndersizedSuggestionBeforeBooking() {
+		var context = mock(OperationContext.class);
+		var ai = mock(Ai.class);
+		var runner = mock(PromptRunner.class);
+		PromptRunner.Creating<SuggestedRoom> creating = creatingMock();
+		when(context.ai()).thenReturn(ai);
+		when(ai.withDefaultLlm()).thenReturn(runner);
+		when(runner.withToolGroups("location")).thenReturn(runner);
+		when(runner.creating(SuggestedRoom.class)).thenReturn(creating);
+		when(creating.fromPrompt(anyString())).thenReturn(new SuggestedRoom("bern-hub", "Bern Innovation Hub", "brn-1",
+				"Bundeshaus", 10, "2026-04-24", "09:00", 180));
+
+		assertThrows(IllegalStateException.class,
+				() -> new MeetingPlannerAgent().findRoomAtLocation(
+						new Location("bern-hub", "Bern Innovation Hub", "Bern", "Bundesplatz 3"),
+						new RoomRequest("Workshop", 15, "Bern", "2026-04-24", "09:00", 180, true), context));
 	}
 
 	@Test
@@ -86,7 +107,8 @@ class MeetingPlannerAgentActionTest {
 		when(ai.withDefaultLlm()).thenReturn(runner);
 		when(runner.withToolGroups("location")).thenReturn(runner);
 		when(runner.creating(BookingResult.class)).thenReturn(creating);
-		when(creating.fromPrompt(anyString())).thenReturn(expected);
+		when(creating.fromPrompt(anyString()))
+			.thenReturn(new BookingResult("BK-1", null, "bsl-1", "2026-04-21", "10:00", 60, true, "Booked"));
 
 		var result = agent.bookRoom(new SuggestedRoom("basel-hq", "Basel Headquarters", "bsl-1", "Rhine View", 12,
 				"2026-04-21", "10:00", 60), context);

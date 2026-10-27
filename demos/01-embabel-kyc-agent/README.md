@@ -68,6 +68,6 @@ From the repository root:
 
 ## Tech Stack
 
-- Embabel 0.4.x
-- Spring Boot 3.5.x
+- Embabel 1.5.x
+- Spring Boot 4.1.x (Java 21+)
 - OpenAI gpt-5-mini
